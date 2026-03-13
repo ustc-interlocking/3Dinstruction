@@ -1,0 +1,844 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D 积木拼搭说明书</title>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap");
+
+    :root {
+      --bg-a: #f4efe3;
+      --bg-b: #f6dec6;
+      --bg-c: #e8f1ea;
+      --panel: rgba(255, 251, 244, 0.88);
+      --panel-border: rgba(118, 76, 32, 0.22);
+      --ink-main: #2e281e;
+      --ink-sub: #645744;
+      --accent: #c96f2d;
+      --accent-strong: #aa5820;
+      --accent-soft: #f7e4ce;
+      --shadow: 0 12px 34px rgba(58, 41, 20, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      color: var(--ink-main);
+      font-family: "Manrope", "Segoe UI", "PingFang SC", sans-serif;
+      background:
+        radial-gradient(55vw 35vw at 14% 14%, rgba(255, 248, 237, 0.9), transparent 70%),
+        radial-gradient(65vw 45vw at 84% 88%, rgba(224, 240, 229, 0.8), transparent 72%),
+        linear-gradient(145deg, var(--bg-a), var(--bg-b) 48%, var(--bg-c));
+    }
+
+    #stage {
+      position: fixed;
+      inset: 0;
+    }
+
+    #ui {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+      width: min(390px, calc(100vw - 28px));
+      max-height: calc(100vh - 32px);
+      padding: 14px 14px 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      overflow: auto;
+      animation: panel-in 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.15;
+      font-family: "ZCOOL XiaoWei", "Times New Roman", serif;
+      letter-spacing: 0.3px;
+    }
+
+    #stepInfo {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--ink-sub);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    #note {
+      margin: 8px 0 12px;
+      min-height: 42px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--ink-main);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 11px;
+      padding: 9px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--ink-main);
+      background: #fff6ea;
+      transition: transform 0.16s ease, background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    button:hover {
+      border-color: #e3bf97;
+      background: #ffedd8;
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button[data-variant="solid"] {
+      color: #fff;
+      background: var(--accent);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    button[data-variant="solid"]:hover {
+      background: var(--accent-strong);
+    }
+
+    .control-row {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .slider-wrap.is-hidden {
+      display: none;
+    }
+
+    #pathSlider {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    #pathSlider:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    #timeline {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      text-align: left;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #ecdcc8;
+      background: #fff8ef;
+      font-size: 12px;
+      color: #4f4334;
+      transition: all 0.2s ease;
+    }
+
+    .chip.current {
+      border-color: #e6a66f;
+      background: var(--accent-soft);
+      color: #3f2c1a;
+    }
+
+    .chip.done {
+      border-color: #c3d3b1;
+      background: #f4f8ef;
+    }
+
+    .chip span {
+      font-weight: 700;
+    }
+
+    #hint {
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: #7c6f5c;
+    }
+
+    @keyframes panel-in {
+      from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @media (max-width: 760px) {
+      #ui {
+        top: auto;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
+        max-height: 56vh;
+      }
+
+      .row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <aside id="ui">
+    <h1>3D 积木拼搭说明书</h1>
+    <div id="stepInfo">步骤 0 / 0</div>
+    <div id="note">正在初始化页面...</div>
+    <div class="row">
+      <button id="prev">上一步</button>
+      <button id="next" data-variant="solid">下一步</button>
+      <button id="reset">重置</button>
+      <button id="auto">自动播放</button>
+    </div>
+    <div class="control-row">
+      <button id="replayCurrent">重来这块</button>
+      <div id="pathSliderWrap" class="slider-wrap is-hidden">
+        <input id="pathSlider" type="range" min="0" max="100" value="100" step="1" />
+      </div>
+    </div>
+    <div id="timeline"></div>
+    <p id="hint">左键拖动旋转，滚轮缩放，右键平移，方向键切换步骤。</p>
+  </aside>
+
+  <script type="module">
+    const stage = document.getElementById("stage");
+    const elStepInfo = document.getElementById("stepInfo");
+    const elNote = document.getElementById("note");
+    const elTimeline = document.getElementById("timeline");
+    const btnPrev = document.getElementById("prev");
+    const btnNext = document.getElementById("next");
+    const btnReset = document.getElementById("reset");
+    const btnAuto = document.getElementById("auto");
+    const btnReplayCurrent = document.getElementById("replayCurrent");
+    const pathSliderWrap = document.getElementById("pathSliderWrap");
+    const pathSlider = document.getElementById("pathSlider");
+
+    const partConfigs = [
+      { id: "grid1_piece1", label: "零件 1", note: "放置底座主件，作为拼搭起点。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
+      { id: "grid1_piece2", label: "零件 2", note: "对齐卡点后平移拼入第二块。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
+      { id: "grid1_piece3", label: "零件 3", note: "沿侧边缺口方向安装第三块。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
+      { id: "grid1_piece4", label: "零件 4", note: "补齐中段结构并保持平齐。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
+      { id: "grid1_piece5", label: "零件 5", note: "安装顶部锁定件并检查咬合。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
+      { id: "grid1_piece6", label: "零件 6", note: "拼入收尾件，完成整体结构。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 }
+    ];
+
+    // 按这里的列表指定零件插入顺序
+    const assemblyOrder = [
+      "grid1_piece1",
+      "grid1_piece2",
+      "grid1_piece3",
+      "grid1_piece4",
+      "grid1_piece5",
+      "grid1_piece6"
+    ];
+
+    const partConfigById = new Map(partConfigs.map(part => [part.id, part]));
+
+    const steps = assemblyOrder.map((partId, index) => {
+      const part = partConfigById.get(partId);
+      return {
+        add: [partId],
+        note: `第 ${index + 1} 步：${part ? part.note : `安装 ${partId}`}`
+      };
+    });
+
+    const dependencyProviders = [
+      {
+        name: "unpkg-module",
+        three: "https://unpkg.com/three@0.160.0/build/three.module.js?module",
+        orbit: "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js?module",
+        obj: "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js?module"
+      },
+      {
+        name: "esm.sh",
+        three: "https://esm.sh/three@0.160.0",
+        orbit: "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        obj: "https://esm.sh/three@0.160.0/examples/jsm/loaders/OBJLoader.js"
+      },
+      {
+        name: "jsdelivr-esm",
+        three: "https://cdn.jsdelivr.net/npm/three@0.160.0/+esm",
+        orbit: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js/+esm",
+        obj: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js/+esm"
+      }
+    ];
+
+    function buildCandidates(partId) {
+      return [`./Models/Duck_6pcs/${partId}.obj`];
+    }
+
+    function getPartById(id) {
+      return partConfigById.get(id);
+    }
+
+    function updateStaticStatus(step, total, text) {
+      elStepInfo.textContent = `步骤 ${step} / ${total}`;
+      elNote.textContent = text;
+    }
+
+    function buildTimelineSkeleton() {
+      const frag = document.createDocumentFragment();
+      steps.forEach((step, index) => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.type = "button";
+        const part = getPartById(step.add?.[0]);
+        chip.innerHTML = `<span>步骤 ${index + 1}</span><em>${part?.label ?? "零件"}</em>`;
+        chip.disabled = true;
+        frag.appendChild(chip);
+      });
+      elTimeline.replaceChildren(frag);
+    }
+
+    async function loadDependencies() {
+      let lastError = null;
+      for (const provider of dependencyProviders) {
+        try {
+          console.info(`[deps] trying provider: ${provider.name}`);
+          const threeMod = await import(provider.three);
+          const orbitMod = await import(provider.orbit);
+          const objMod = await import(provider.obj);
+          if (!orbitMod.OrbitControls || !objMod.OBJLoader) {
+            throw new Error(`Provider ${provider.name} returned incomplete modules.`);
+          }
+          return {
+            provider: provider.name,
+            THREE: threeMod,
+            OrbitControls: orbitMod.OrbitControls,
+            OBJLoader: objMod.OBJLoader
+          };
+        } catch (err) {
+          lastError = err;
+          console.warn(`[deps] provider failed: ${provider.name}`, err);
+        }
+      }
+      const message = lastError?.message ? ` Last error: ${lastError.message}` : "";
+      throw new Error(`Three.js 依赖加载失败。${message}`);
+    }
+
+    async function loadObjWithFallback(loader, partId) {
+      const candidates = buildCandidates(partId);
+      let lastError = null;
+
+      for (const path of candidates) {
+        try {
+          const loaded = await loader.loadAsync(path);
+          console.info(`[OBJ] loaded: ${path}`);
+          return loaded;
+        } catch (err) {
+          lastError = err;
+          console.warn(`[OBJ] failed: ${path}`, err);
+        }
+      }
+
+      const message = `OBJ 加载失败：${partId}。已尝试：${candidates.join(" , ")}`;
+      const err = new Error(message);
+      err.cause = lastError;
+      throw err;
+    }
+
+    updateStaticStatus(0, steps.length, "正在初始化 3D 引擎...");
+    buildTimelineSkeleton();
+
+    (async function main() {
+      let deps;
+      try {
+        deps = await loadDependencies();
+        elNote.textContent = `3D 引擎已就绪（${deps.provider}），正在加载模型...`;
+      } catch (err) {
+        console.error(err);
+        updateStaticStatus(0, steps.length, `3D 引擎加载失败：${err.message}`);
+        return;
+      }
+
+      const THREE = deps.THREE;
+      const OrbitControls = deps.OrbitControls;
+      const OBJLoader = deps.OBJLoader;
+      const sceneConfig = {
+        floorY: -5.0,
+        gridOffsetY: 0.001,
+        assembleDistance: 0.45
+      };
+
+      function validateInsertDirectionConfig() {
+        for (const part of partConfigs) {
+          const dir = part.insertDirection;
+          const directionValid =
+            Array.isArray(dir) &&
+            dir.length === 3 &&
+            dir.every(v => typeof v === "number" && Number.isFinite(v));
+          if (!directionValid) {
+            throw new Error(`零件 ${part.id} 的 insertDirection 无效，必须是 [x, y, z] 数字数组。`);
+          }
+          const distanceValid = typeof part.insertDistance === "number" && Number.isFinite(part.insertDistance);
+          if (!distanceValid) {
+            throw new Error(`零件 ${part.id} 的 insertDistance 无效，必须是数字。`);
+          }
+        }
+      }
+
+      function validateAssemblyOrderConfig() {
+        const knownIds = new Set(partConfigs.map(part => part.id));
+        const seenIds = new Set();
+
+        for (const partId of assemblyOrder) {
+          if (!knownIds.has(partId)) {
+            throw new Error(`assemblyOrder 中存在未知零件 id：${partId}`);
+          }
+          if (seenIds.has(partId)) {
+            throw new Error(`assemblyOrder 中存在重复零件 id：${partId}`);
+          }
+          seenIds.add(partId);
+        }
+
+        for (const partId of knownIds) {
+          if (!seenIds.has(partId)) {
+            throw new Error(`assemblyOrder 缺少零件 id：${partId}`);
+          }
+        }
+      }
+
+      validateAssemblyOrderConfig();
+      validateInsertDirectionConfig();
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.01, 800);
+      camera.position.set(2.2, 1.35, 2.2);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      stage.appendChild(renderer.domElement);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 0.2;
+      controls.maxDistance = 20;
+      controls.enablePan = true;
+      controls.mouseButtons = {
+        LEFT: THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: THREE.MOUSE.PAN
+      };
+
+      renderer.domElement.addEventListener("contextmenu", event => {
+        event.preventDefault();
+      });
+      renderer.domElement.addEventListener("pointerdown", event => {
+        if (event.button === 2) event.preventDefault();
+      }, { passive: false });
+      renderer.domElement.addEventListener("auxclick", event => {
+        if (event.button === 2) event.preventDefault();
+      });
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+      const hemi = new THREE.HemisphereLight(0xfff4df, 0xd7e3e6, 0.95);
+      scene.add(hemi);
+
+      const keyLight = new THREE.DirectionalLight(0xfff2db, 1.0);
+      keyLight.position.set(3.3, 4.5, 2.4);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.set(1024, 1024);
+      keyLight.shadow.camera.near = 0.5;
+      keyLight.shadow.camera.far = 20;
+      keyLight.shadow.bias = -0.00012;
+      scene.add(keyLight);
+
+      const fillLight = new THREE.DirectionalLight(0xe8f5ff, 0.45);
+      fillLight.position.set(-2.4, 1.8, -1.8);
+      scene.add(fillLight);
+
+      const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(16, 90),
+        new THREE.MeshStandardMaterial({ color: 0xf9f3e8, roughness: 0.96, metalness: 0 })
+      );
+      floor.receiveShadow = true;
+      floor.rotation.x = -Math.PI * 0.5;
+      floor.position.y = sceneConfig.floorY;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(8, 32, 0xd4c1a3, 0xe9dcc8);
+      grid.position.y = sceneConfig.floorY + sceneConfig.gridOffsetY;
+      if (grid.material && "opacity" in grid.material) {
+        grid.material.opacity = 0.65;
+        grid.material.transparent = true;
+      }
+      scene.add(grid);
+
+      const parts = new Map();
+      const finalPos = new Map();
+      const finalQuat = new Map();
+      const animating = new Map();
+      let currentStep = 0;
+      let autoTimer = null;
+      let currentPathPartId = null;
+      let pathControlEnabled = false;
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function easeOutCubic(x) {
+        return 1 - Math.pow(1 - x, 3);
+      }
+
+      function getVisibleSet(stepIndex) {
+        const set = new Set();
+        for (let i = 0; i < stepIndex; i += 1) {
+          for (const id of (steps[i]?.add ?? [])) {
+            set.add(id);
+          }
+        }
+        return set;
+      }
+
+      function setHighlight(partId, on) {
+        const obj = parts.get(partId);
+        if (!obj) return;
+        obj.traverse(node => {
+          if (!node.isMesh || !node.material || !node.material.isMeshStandardMaterial) return;
+          node.material.emissive.setHex(on ? 0xffb347 : 0x000000);
+          node.material.emissiveIntensity = on ? 0.34 : 0;
+        });
+      }
+
+      function clearHighlights() {
+        for (const part of partConfigs) {
+          setHighlight(part.id, false);
+        }
+      }
+
+      function getCurrentStepPartId() {
+        if (currentStep <= 0) return null;
+        return steps[currentStep - 1]?.add?.[0] ?? null;
+      }
+
+      function getInsertionPath(partId) {
+        const toPos = finalPos.get(partId);
+        const partConfig = getPartById(partId);
+        if (!toPos || !partConfig) return null;
+        const [dx, dy, dz] = partConfig.insertDirection;
+        const offset = new THREE.Vector3(dx, dy, dz).multiplyScalar(partConfig.insertDistance);
+        return {
+          fromPos: toPos.clone().add(offset),
+          toPos: toPos.clone()
+        };
+      }
+
+      function setPartProgressOnPath(partId, progress) {
+        const obj = parts.get(partId);
+        const path = getInsertionPath(partId);
+        if (!obj || !path) return;
+        const t = clamp(progress, 0, 1);
+        obj.position.lerpVectors(path.fromPos, path.toPos, t);
+        setHighlight(partId, t < 1);
+      }
+
+      function setPathControlEnabled(enabled) {
+        pathControlEnabled = enabled;
+        pathSliderWrap.classList.toggle("is-hidden", !enabled);
+        pathSlider.disabled = !enabled;
+        if (!enabled) pathSlider.value = "100";
+      }
+
+      function updateTimeline() {
+        const chips = elTimeline.querySelectorAll(".chip");
+        chips.forEach((chip, i) => {
+          chip.classList.toggle("done", i < currentStep);
+          chip.classList.toggle("current", i === currentStep - 1 && currentStep > 0);
+          chip.disabled = false;
+        });
+      }
+
+      function updateStatus() {
+        elStepInfo.textContent = `步骤 ${currentStep} / ${steps.length}`;
+        if (currentStep === 0) {
+          elNote.textContent = "点击“下一步”开始拼搭。";
+        } else {
+          elNote.textContent = steps[currentStep - 1]?.note ?? "暂无说明";
+        }
+        btnPrev.disabled = currentStep <= 0;
+        btnNext.disabled = currentStep >= steps.length;
+        const activePartId = getCurrentStepPartId();
+        const canControlPath = Boolean(activePartId);
+        btnReplayCurrent.disabled = !canControlPath;
+        if (!canControlPath) {
+          currentPathPartId = null;
+          setPathControlEnabled(false);
+        } else if (activePartId !== currentPathPartId) {
+          currentPathPartId = activePartId;
+          setPathControlEnabled(false);
+        }
+        updateTimeline();
+      }
+
+      function stopAutoPlay() {
+        if (autoTimer) {
+          clearInterval(autoTimer);
+          autoTimer = null;
+        }
+        btnAuto.textContent = "自动播放";
+        btnAuto.dataset.variant = "";
+      }
+
+      function animateIn(partId) {
+        const obj = parts.get(partId);
+        const toPos = finalPos.get(partId);
+        const toQuat = finalQuat.get(partId);
+        const path = getInsertionPath(partId);
+        if (!obj || !toPos || !toQuat || !path) return;
+
+        obj.position.copy(path.fromPos);
+        obj.quaternion.copy(toQuat);
+        obj.visible = true;
+        setHighlight(partId, true);
+        animating.set(partId, { t: 0, fromPos: path.fromPos, toPos: path.toPos });
+      }
+
+      function goStep(nextStep) {
+        currentStep = clamp(nextStep, 0, steps.length);
+        if (currentStep === steps.length) stopAutoPlay();
+
+        const visibleSet = getVisibleSet(currentStep);
+        clearHighlights();
+        animating.clear();
+
+        for (const [id, obj] of parts.entries()) {
+          const visible = visibleSet.has(id);
+          obj.visible = visible;
+          if (visible) {
+            obj.position.copy(finalPos.get(id));
+            obj.quaternion.copy(finalQuat.get(id));
+          }
+        }
+
+        if (currentStep > 0) {
+          const justAdded = steps[currentStep - 1]?.add ?? [];
+          justAdded.forEach(animateIn);
+        }
+
+        updateStatus();
+      }
+
+      function buildTimeline() {
+        const frag = document.createDocumentFragment();
+        steps.forEach((step, index) => {
+          const chip = document.createElement("button");
+          chip.className = "chip";
+          chip.type = "button";
+          const part = getPartById(step.add?.[0]);
+          chip.innerHTML = `<span>步骤 ${index + 1}</span><em>${part?.label ?? "零件"}</em>`;
+          chip.addEventListener("click", () => {
+            stopAutoPlay();
+            goStep(index + 1);
+          });
+          frag.appendChild(chip);
+        });
+        elTimeline.replaceChildren(frag);
+      }
+
+      function fitCameraToAllParts() {
+        const box = new THREE.Box3();
+        for (const part of parts.values()) {
+          box.expandByObject(part);
+        }
+        if (box.isEmpty()) return;
+
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const radius = Math.max(maxDim * 0.5, 0.15);
+
+        controls.target.copy(center);
+        camera.near = Math.max(radius / 150, 0.01);
+        camera.far = Math.max(radius * 120, 100);
+        camera.updateProjectionMatrix();
+        camera.position.copy(center).add(new THREE.Vector3(radius * 2.1, radius * 1.2, radius * 2.05));
+        controls.update();
+      }
+
+      async function loadAllParts() {
+        const loader = new OBJLoader();
+        for (let i = 0; i < partConfigs.length; i += 1) {
+          const config = partConfigs[i];
+          const candidates = buildCandidates(config.id);
+          elNote.textContent = `正在加载 ${i + 1}/${partConfigs.length}：${config.label}（${candidates[0]}）`;
+
+          const obj = await loadObjWithFallback(loader, config.id);
+          obj.name = config.id;
+
+          obj.traverse(node => {
+            if (!node.isMesh) return;
+            node.castShadow = true;
+            node.receiveShadow = true;
+            node.material = new THREE.MeshStandardMaterial({
+              color: config.color,
+              roughness: 0.52,
+              metalness: 0.06
+            });
+          });
+
+          scene.add(obj);
+          parts.set(config.id, obj);
+          finalPos.set(config.id, obj.position.clone());
+          finalQuat.set(config.id, obj.quaternion.clone());
+        }
+
+        fitCameraToAllParts();
+        goStep(1);
+      }
+
+      function toggleAutoPlay() {
+        if (autoTimer) {
+          stopAutoPlay();
+          return;
+        }
+        if (currentStep >= steps.length) {
+          goStep(0);
+        }
+        btnAuto.textContent = "暂停播放";
+        btnAuto.dataset.variant = "solid";
+        autoTimer = setInterval(() => {
+          if (currentStep >= steps.length) {
+            stopAutoPlay();
+            return;
+          }
+          goStep(currentStep + 1);
+        }, 1600);
+      }
+
+      function tick() {
+        for (const [id, data] of animating.entries()) {
+          data.t += 0.03;
+          const k = Math.min(data.t, 1);
+          const obj = parts.get(id);
+          if (!obj) continue;
+          obj.position.lerpVectors(data.fromPos, data.toPos, easeOutCubic(k));
+          if (k >= 1) {
+            animating.delete(id);
+            setHighlight(id, false);
+          }
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      }
+
+      btnPrev.addEventListener("click", () => {
+        stopAutoPlay();
+        goStep(currentStep - 1);
+      });
+      btnNext.addEventListener("click", () => {
+        stopAutoPlay();
+        goStep(currentStep + 1);
+      });
+      btnReset.addEventListener("click", () => {
+        stopAutoPlay();
+        goStep(0);
+      });
+      btnAuto.addEventListener("click", toggleAutoPlay);
+      btnReplayCurrent.addEventListener("click", () => {
+        stopAutoPlay();
+        const partId = getCurrentStepPartId();
+        if (!partId) return;
+        currentPathPartId = partId;
+        setPathControlEnabled(true);
+        pathSlider.value = "0";
+        animating.delete(partId);
+        setPartProgressOnPath(partId, 0);
+      });
+      pathSlider.addEventListener("input", () => {
+        if (!pathControlEnabled) return;
+        const partId = getCurrentStepPartId();
+        if (!partId) return;
+        stopAutoPlay();
+        currentPathPartId = partId;
+        animating.delete(partId);
+        setPartProgressOnPath(partId, Number(pathSlider.value) / 100);
+      });
+
+      addEventListener("keydown", event => {
+        if (event.key === "ArrowRight") {
+          stopAutoPlay();
+          goStep(currentStep + 1);
+        }
+        if (event.key === "ArrowLeft") {
+          stopAutoPlay();
+          goStep(currentStep - 1);
+        }
+      });
+
+      addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      });
+
+      buildTimeline();
+      updateStatus();
+      tick();
+
+      loadAllParts().catch(err => {
+        console.error(err);
+        stopAutoPlay();
+        const detail = err?.message ? ` 详情：${err.message}` : "";
+        elNote.textContent = `模型加载失败，请检查 Models/Duck_6pcs 路径和 OBJ 文件。${detail}`;
+      });
+    })();
+  </script>
+</body>
+</html>
