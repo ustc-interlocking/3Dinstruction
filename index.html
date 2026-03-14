@@ -43,14 +43,121 @@
       inset: 0;
     }
 
+    .is-hidden {
+      display: none !important;
+    }
+
+    #modelSelect {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background:
+        radial-gradient(70vw 45vw at 15% 20%, rgba(255, 246, 230, 0.92), transparent 72%),
+        radial-gradient(80vw 50vw at 85% 80%, rgba(224, 239, 227, 0.9), transparent 72%),
+        linear-gradient(140deg, #f2e8d6, #f6d9bc 46%, #e3eee5);
+    }
+
+    .start-panel {
+      width: min(760px, calc(100vw - 28px));
+      border: 1px solid rgba(118, 76, 32, 0.22);
+      border-radius: 18px;
+      background: rgba(255, 250, 241, 0.9);
+      box-shadow: 0 16px 44px rgba(58, 41, 20, 0.18);
+      padding: 18px;
+      backdrop-filter: blur(8px);
+    }
+
+    .start-title {
+      margin: 0;
+      font-size: 30px;
+      font-family: "ZCOOL XiaoWei", "Times New Roman", serif;
+      line-height: 1.2;
+      color: #2e281e;
+    }
+
+    .start-note {
+      margin: 8px 0 14px;
+      font-size: 14px;
+      color: #675943;
+    }
+
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .model-btn {
+      min-height: 92px;
+      text-align: left;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #e5ceb0;
+      background: #fff3e4;
+      color: #3a2d1f;
+      font-size: 14px;
+      line-height: 1.4;
+      transition: transform 0.16s ease, border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .model-btn strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .model-btn:hover {
+      border-color: #cf915d;
+      background: #ffe9d0;
+      transform: translateY(-1px);
+    }
+
+    .model-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      border-color: #dfd0bc;
+      background: #f4ecdf;
+    }
+
+    #backToStart {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      z-index: 12;
+      width: 56px;
+      height: 56px;
+      padding: 0;
+      border-radius: 999px;
+      background: rgba(255, 247, 235, 0.94);
+      border: 1px solid #e5c4a0;
+      box-shadow: 0 8px 22px rgba(61, 42, 21, 0.14);
+      display: grid;
+      place-items: center;
+    }
+
+    #backToStart svg {
+      width: 30px;
+      height: 30px;
+      display: block;
+      stroke: #3a2d1f;
+      stroke-width: 3.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
     #ui {
       position: fixed;
       top: 16px;
       right: 16px;
       z-index: 10;
-      width: min(390px, calc(100vw - 28px));
+      width: min(430px, calc(100vw - 28px));
       max-height: calc(100vh - 32px);
-      padding: 14px 14px 12px;
+      padding: 16px 16px 14px;
       border: 1px solid var(--panel-border);
       border-radius: 16px;
       background: var(--panel);
@@ -95,8 +202,8 @@
       appearance: none;
       border: 1px solid transparent;
       border-radius: 11px;
-      padding: 9px 10px;
-      font-size: 13px;
+      padding: 11px 12px;
+      font-size: 15px;
       font-weight: 700;
       cursor: pointer;
       color: var(--ink-main);
@@ -225,12 +332,39 @@
       .row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .model-grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
 <body>
+  <section id="modelSelect">
+    <div class="start-panel">
+      <h2 class="start-title">选择拼搭模型</h2>
+      <p class="start-note">先选择一个模型进入说明书。</p>
+      <div class="model-grid">
+        <button class="model-btn" data-model="duck">
+          <strong>鸭子</strong>
+        </button>
+        <button class="model-btn" data-model="horse_easy">
+          <strong>马上发（简单）</strong>
+        </button>
+        <button class="model-btn" data-model="horse_hard">
+          <strong>马上发（困难）</strong>
+        </button>
+      </div>
+    </div>
+  </section>
+  <button id="backToStart" class="is-hidden" type="button" aria-label="返回初始界面" title="返回初始界面">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M19 12H6"></path>
+      <path d="M11 7L6 12L11 17"></path>
+    </svg>
+  </button>
   <div id="stage"></div>
-  <aside id="ui">
+  <aside id="ui" class="is-hidden">
     <h1>3D 积木拼搭说明书</h1>
     <div id="stepInfo">步骤 0 / 0</div>
     <div id="note">正在初始化页面...</div>
@@ -247,11 +381,14 @@
       </div>
     </div>
     <div id="timeline"></div>
-    <p id="hint">左键拖动旋转，滚轮缩放，右键平移，方向键切换步骤。</p>
+    <p id="hint">左键拖动旋转，滚轮缩放，WASD / 方向键平移视角。</p>
   </aside>
 
   <script type="module">
     const stage = document.getElementById("stage");
+    const modelSelect = document.getElementById("modelSelect");
+    const uiPanel = document.getElementById("ui");
+    const btnBackToStart = document.getElementById("backToStart");
     const elStepInfo = document.getElementById("stepInfo");
     const elNote = document.getElementById("note");
     const elTimeline = document.getElementById("timeline");
@@ -262,59 +399,100 @@
     const btnReplayCurrent = document.getElementById("replayCurrent");
     const pathSliderWrap = document.getElementById("pathSliderWrap");
     const pathSlider = document.getElementById("pathSlider");
+    const modelButtons = document.querySelectorAll(".model-btn[data-model]");
 
-    const partConfigs = [
-      { id: "grid1_piece1", label: "零件 1", note: "放置底座主件，作为拼搭起点。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
-      { id: "grid1_piece2", label: "零件 2", note: "对齐卡点后平移拼入第二块。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
-      { id: "grid1_piece3", label: "零件 3", note: "沿侧边缺口方向安装第三块。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
-      { id: "grid1_piece4", label: "零件 4", note: "补齐中段结构并保持平齐。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
-      { id: "grid1_piece5", label: "零件 5", note: "安装顶部锁定件并检查咬合。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 },
-      { id: "grid1_piece6", label: "零件 6", note: "拼入收尾件，完成整体结构。", color: 0xdb7c46, insertDirection: [1, 0, 0], insertDistance: 1.2 }
-    ];
+    const modelCatalog = {
+      duck: {
+        name: "鸭子",
+        folder: "Duck_6pcs",
+        fileType: "obj",
+        scale: 1,
+        modelRotationDeg: [0, 0, 0],
+        parts: [
+          { id: "grid1_piece6", insertDirection: [1, 0, 0] },
+          { id: "grid1_piece5", insertDirection: [-1, 0, 0] },
+          { id: "grid1_piece4", insertDirection: [0, 0, 1] },
+          { id: "grid1_piece3", insertDirection: [-1, 0, 0] },
+          { id: "grid1_piece2", insertDirection: [0, 1, 0] },
+          { id: "grid1_piece1", insertDirection: [0, 1, 0] }
+        ]
+      },
+      horse_easy: {
+        name: "马上发（简单）",
+        folder: "Horse_4pcs",
+        fileType: "obj",
+        scale: 0.2,
+        modelRotationDeg: [-90, 0, 0],
+        parts: [
+          { id: "grid1_piece2", insertDirection: [1, 0, 0] },
+          { id: "grid1_piece3", insertDirection: [-1, 0, 0] },
+          { id: "grid1_piece4", insertDirection: [0, 1, 0] },
+          { id: "grid1_piece1", insertDirection: [0, 0, -1] }
+        ]
+      },
+      horse_hard: {
+        name: "马上发（困难）",
+        folder: "Horse_7pcs",
+        fileType: "obj",
+        scale: 0.2,
+        modelRotationDeg: [-90, 0, 0],
+        parts: [
+          { id: "grid1_piece6", insertDirection: [1, 0, 0] },
+          { id: "grid1_piece5", insertDirection: [-1, 0, 0] },
+          { id: "grid2_piece1", insertDirection: [0, 0, -1] },
+          { id: "grid1_piece4", insertDirection: [0, 0, 1] },
+          { id: "grid1_piece3", insertDirection: [0, -1, 0] },
+          { id: "grid1_piece2", insertDirection: [0, 1, 0] },
+          { id: "grid1_piece1", insertDirection: [0, 0, -1] }
+        ]
+      }
+    };
 
-    // 按这里的列表指定零件插入顺序
-    const assemblyOrder = [
-      "grid1_piece1",
-      "grid1_piece2",
-      "grid1_piece3",
-      "grid1_piece4",
-      "grid1_piece5",
-      "grid1_piece6"
-    ];
+    function buildPartConfigsFromModel(modelConfig) {
+      return modelConfig.parts.map((part, index) => ({
+        id: part.id,
+        label: `零件 ${index + 1}`,
+        note: `沿当前方向插入第 ${index + 1} 块零件。`,
+        color: 0xdb7c46,
+        insertDirection: part.insertDirection,
+        insertDistance: typeof part.insertDistance === "number" ? part.insertDistance : 1.2
+      }));
+    }
 
-    const partConfigById = new Map(partConfigs.map(part => [part.id, part]));
-
-    const steps = assemblyOrder.map((partId, index) => {
-      const part = partConfigById.get(partId);
-      return {
-        add: [partId],
-        note: `第 ${index + 1} 步：${part ? part.note : `安装 ${partId}`}`
-      };
-    });
+    let activeModel = null;
+    let partConfigs = [];
+    let assemblyOrder = [];
+    let partConfigById = new Map();
+    let steps = [];
 
     const dependencyProviders = [
       {
         name: "unpkg-module",
         three: "https://unpkg.com/three@0.160.0/build/three.module.js?module",
         orbit: "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js?module",
-        obj: "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js?module"
+        obj: "https://unpkg.com/three@0.160.0/examples/jsm/loaders/OBJLoader.js?module",
+        stl: "https://unpkg.com/three@0.160.0/examples/jsm/loaders/STLLoader.js?module"
       },
       {
         name: "esm.sh",
         three: "https://esm.sh/three@0.160.0",
         orbit: "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js",
-        obj: "https://esm.sh/three@0.160.0/examples/jsm/loaders/OBJLoader.js"
+        obj: "https://esm.sh/three@0.160.0/examples/jsm/loaders/OBJLoader.js",
+        stl: "https://esm.sh/three@0.160.0/examples/jsm/loaders/STLLoader.js"
       },
       {
         name: "jsdelivr-esm",
         three: "https://cdn.jsdelivr.net/npm/three@0.160.0/+esm",
         orbit: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js/+esm",
-        obj: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js/+esm"
+        obj: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js/+esm",
+        stl: "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js/+esm"
       }
     ];
 
     function buildCandidates(partId) {
-      return [`./Models/Duck_6pcs/${partId}.obj`];
+      if (!activeModel) return [];
+      const ext = activeModel.fileType === "stl" ? ".obj.stl" : ".obj";
+      return [`./Models/${activeModel.folder}/${partId}${ext}`];
     }
 
     function getPartById(id) {
@@ -348,14 +526,16 @@
           const threeMod = await import(provider.three);
           const orbitMod = await import(provider.orbit);
           const objMod = await import(provider.obj);
-          if (!orbitMod.OrbitControls || !objMod.OBJLoader) {
+          const stlMod = await import(provider.stl);
+          if (!orbitMod.OrbitControls || !objMod.OBJLoader || !stlMod.STLLoader) {
             throw new Error(`Provider ${provider.name} returned incomplete modules.`);
           }
           return {
             provider: provider.name,
             THREE: threeMod,
             OrbitControls: orbitMod.OrbitControls,
-            OBJLoader: objMod.OBJLoader
+            OBJLoader: objMod.OBJLoader,
+            STLLoader: stlMod.STLLoader
           };
         } catch (err) {
           lastError = err;
@@ -387,10 +567,64 @@
       throw err;
     }
 
-    updateStaticStatus(0, steps.length, "正在初始化 3D 引擎...");
-    buildTimelineSkeleton();
+    async function loadStlWithFallback(loader, partId) {
+      const candidates = buildCandidates(partId);
+      let lastError = null;
+
+      for (const path of candidates) {
+        try {
+          const loaded = await loader.loadAsync(path);
+          console.info(`[STL] loaded: ${path}`);
+          return loaded;
+        } catch (err) {
+          lastError = err;
+          console.warn(`[STL] failed: ${path}`, err);
+        }
+      }
+
+      const message = `STL 加载失败：${partId}。已尝试：${candidates.join(" , ")}`;
+      const err = new Error(message);
+      err.cause = lastError;
+      throw err;
+    }
+
+    function waitForModelSelection() {
+      return new Promise(resolve => {
+        modelButtons.forEach(button => {
+          button.addEventListener("click", () => {
+            resolve(button.dataset.model);
+          }, { once: true });
+        });
+      });
+    }
 
     (async function main() {
+      const modelFromUrl = new URLSearchParams(location.search).get("model");
+      const selectedModel =
+        modelFromUrl && modelCatalog[modelFromUrl]
+          ? modelFromUrl
+          : await waitForModelSelection();
+      activeModel = modelCatalog[selectedModel];
+      if (!activeModel) return;
+      history.replaceState(null, "", `${location.pathname}?model=${encodeURIComponent(selectedModel)}`);
+
+      partConfigs = buildPartConfigsFromModel(activeModel);
+      assemblyOrder = activeModel.parts.map(part => part.id);
+      partConfigById = new Map(partConfigs.map(part => [part.id, part]));
+      steps = assemblyOrder.map((partId, index) => {
+        const part = partConfigById.get(partId);
+        return {
+          add: [partId],
+          note: `第 ${index + 1} 步：${part ? part.note : `安装 ${partId}`}`
+        };
+      });
+
+      updateStaticStatus(0, steps.length, `已选择：${activeModel.name}，正在初始化 3D 引擎...`);
+      buildTimelineSkeleton();
+      modelSelect.classList.add("is-hidden");
+      uiPanel.classList.remove("is-hidden");
+      btnBackToStart.classList.remove("is-hidden");
+
       let deps;
       try {
         deps = await loadDependencies();
@@ -404,6 +638,7 @@
       const THREE = deps.THREE;
       const OrbitControls = deps.OrbitControls;
       const OBJLoader = deps.OBJLoader;
+      const STLLoader = deps.STLLoader;
       const sceneConfig = {
         floorY: -5.0,
         gridOffsetY: 0.001,
@@ -471,7 +706,7 @@
       controls.mouseButtons = {
         LEFT: THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: THREE.MOUSE.PAN
+        RIGHT: null
       };
 
       renderer.domElement.addEventListener("contextmenu", event => {
@@ -523,6 +758,11 @@
       const finalPos = new Map();
       const finalQuat = new Map();
       const animating = new Map();
+      const pressedPanKeys = new Set();
+      const defaultView = {
+        cameraPos: null,
+        target: null
+      };
       let currentStep = 0;
       let autoTimer = null;
       let currentPathPartId = null;
@@ -650,6 +890,7 @@
       }
 
       function goStep(nextStep) {
+        const prevStep = currentStep;
         currentStep = clamp(nextStep, 0, steps.length);
         if (currentStep === steps.length) stopAutoPlay();
 
@@ -666,7 +907,7 @@
           }
         }
 
-        if (currentStep > 0) {
+        if (currentStep > prevStep && currentStep > 0) {
           const justAdded = steps[currentStep - 1]?.add ?? [];
           justAdded.forEach(animateIn);
         }
@@ -709,28 +950,63 @@
         camera.updateProjectionMatrix();
         camera.position.copy(center).add(new THREE.Vector3(radius * 2.1, radius * 1.2, radius * 2.05));
         controls.update();
+
+        defaultView.cameraPos = camera.position.clone();
+        defaultView.target = controls.target.clone();
+      }
+
+      function resetDefaultView() {
+        if (!defaultView.cameraPos || !defaultView.target) return;
+        camera.position.copy(defaultView.cameraPos);
+        controls.target.copy(defaultView.target);
+        controls.update();
       }
 
       async function loadAllParts() {
-        const loader = new OBJLoader();
+        const objLoader = new OBJLoader();
+        const stlLoader = new STLLoader();
         for (let i = 0; i < partConfigs.length; i += 1) {
           const config = partConfigs[i];
           const candidates = buildCandidates(config.id);
           elNote.textContent = `正在加载 ${i + 1}/${partConfigs.length}：${config.label}（${candidates[0]}）`;
 
-          const obj = await loadObjWithFallback(loader, config.id);
-          obj.name = config.id;
-
-          obj.traverse(node => {
-            if (!node.isMesh) return;
-            node.castShadow = true;
-            node.receiveShadow = true;
-            node.material = new THREE.MeshStandardMaterial({
-              color: config.color,
-              roughness: 0.52,
-              metalness: 0.06
+          let obj;
+          if (activeModel.fileType === "stl") {
+            const geometry = await loadStlWithFallback(stlLoader, config.id);
+            if (typeof geometry.computeVertexNormals === "function") {
+              geometry.computeVertexNormals();
+            }
+            obj = new THREE.Mesh(
+              geometry,
+              new THREE.MeshStandardMaterial({
+                color: config.color,
+                roughness: 0.52,
+                metalness: 0.06
+              })
+            );
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+          } else {
+            obj = await loadObjWithFallback(objLoader, config.id);
+            obj.traverse(node => {
+              if (!node.isMesh) return;
+              node.castShadow = true;
+              node.receiveShadow = true;
+              node.material = new THREE.MeshStandardMaterial({
+                color: config.color,
+                roughness: 0.52,
+                metalness: 0.06
+              });
             });
-          });
+          }
+          obj.name = config.id;
+          obj.scale.setScalar(activeModel.scale ?? 1);
+          const [rxDeg, ryDeg, rzDeg] = activeModel.modelRotationDeg ?? [0, 0, 0];
+          obj.rotation.set(
+            THREE.MathUtils.degToRad(rxDeg),
+            THREE.MathUtils.degToRad(ryDeg),
+            THREE.MathUtils.degToRad(rzDeg)
+          );
 
           scene.add(obj);
           parts.set(config.id, obj);
@@ -762,6 +1038,29 @@
       }
 
       function tick() {
+        const dt = clock.getDelta();
+
+        const panDir = new THREE.Vector3();
+        if (pressedPanKeys.has("w") || pressedPanKeys.has("arrowup")) panDir.y += 1;
+        if (pressedPanKeys.has("s") || pressedPanKeys.has("arrowdown")) panDir.y -= 1;
+        if (pressedPanKeys.has("a") || pressedPanKeys.has("arrowleft")) panDir.x -= 1;
+        if (pressedPanKeys.has("d") || pressedPanKeys.has("arrowright")) panDir.x += 1;
+
+        if (panDir.lengthSq() > 0) {
+          panDir.normalize();
+          const forward = new THREE.Vector3();
+          camera.getWorldDirection(forward);
+          const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+          const viewUp = new THREE.Vector3().crossVectors(right, forward).normalize();
+          const distanceFactor = Math.max(camera.position.distanceTo(controls.target), 0.2);
+          const panSpeed = distanceFactor * 1.2 * dt;
+          const delta = new THREE.Vector3()
+            .addScaledVector(right, panDir.x * panSpeed)
+            .addScaledVector(viewUp, panDir.y * panSpeed);
+          camera.position.add(delta);
+          controls.target.add(delta);
+        }
+
         for (const [id, data] of animating.entries()) {
           data.t += 0.03;
           const k = Math.min(data.t, 1);
@@ -810,16 +1109,41 @@
         animating.delete(partId);
         setPartProgressOnPath(partId, Number(pathSlider.value) / 100);
       });
+      btnBackToStart.addEventListener("click", () => {
+        stopAutoPlay();
+        setPathControlEnabled(false);
+        modelSelect.classList.remove("is-hidden");
+        uiPanel.classList.add("is-hidden");
+        btnBackToStart.classList.add("is-hidden");
+      });
+
+      modelButtons.forEach(button => {
+        button.addEventListener("click", () => {
+          if (button.dataset.model !== selectedModel) {
+            stopAutoPlay();
+            location.href = `${location.pathname}?model=${encodeURIComponent(button.dataset.model)}`;
+            return;
+          }
+          modelSelect.classList.add("is-hidden");
+          uiPanel.classList.remove("is-hidden");
+          btnBackToStart.classList.remove("is-hidden");
+          resetDefaultView();
+        });
+      });
 
       addEventListener("keydown", event => {
-        if (event.key === "ArrowRight") {
-          stopAutoPlay();
-          goStep(currentStep + 1);
-        }
-        if (event.key === "ArrowLeft") {
-          stopAutoPlay();
-          goStep(currentStep - 1);
-        }
+        const key = event.key.toLowerCase();
+        const tag = event.target?.tagName;
+        const editable = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+        if (editable) return;
+        if (!["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(key)) return;
+        pressedPanKeys.add(key);
+        event.preventDefault();
+      });
+
+      addEventListener("keyup", event => {
+        const key = event.key.toLowerCase();
+        pressedPanKeys.delete(key);
       });
 
       addEventListener("resize", () => {
@@ -830,13 +1154,14 @@
 
       buildTimeline();
       updateStatus();
+      const clock = new THREE.Clock();
       tick();
 
       loadAllParts().catch(err => {
         console.error(err);
         stopAutoPlay();
         const detail = err?.message ? ` 详情：${err.message}` : "";
-        elNote.textContent = `模型加载失败，请检查 Models/Duck_6pcs 路径和 OBJ 文件。${detail}`;
+        elNote.textContent = `模型加载失败，请检查 Models/${activeModel?.folder ?? ""} 路径和文件。${detail}`;
       });
     })();
   </script>
