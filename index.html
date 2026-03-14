@@ -184,6 +184,7 @@
     }
 
     #note {
+      display: none;
       margin: 8px 0 12px;
       min-height: 42px;
       font-size: 14px;
@@ -985,7 +986,7 @@
         for (let i = 0; i < partConfigs.length; i += 1) {
           const config = partConfigs[i];
           const candidates = buildCandidates(config.id);
-          elNote.textContent = `正在加载 ${i + 1}/${partConfigs.length}：${config.label}（${candidates[0]}）`;
+          elNote.textContent = `正在加载 ${i + 1}/${partConfigs.length}：${config.label}`;
 
           let obj;
           if (activeModel.fileType === "stl") {
