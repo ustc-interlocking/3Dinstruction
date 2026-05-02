@@ -726,9 +726,16 @@
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: null
       };
-      renderer.domElement.addEventListener("contextmenu", event => {
-        event.stopImmediatePropagation();
-      }, true);
+      function allowBrowserContextMenu(event) {
+        if (event.type === "contextmenu" || event.button === 2) {
+          event.stopImmediatePropagation();
+        }
+      }
+      
+      renderer.domElement.addEventListener("pointerdown", allowBrowserContextMenu, true);
+      renderer.domElement.addEventListener("mousedown", allowBrowserContextMenu, true);
+      renderer.domElement.addEventListener("auxclick", allowBrowserContextMenu, true);
+      renderer.domElement.addEventListener("contextmenu", allowBrowserContextMenu, true);
 /*
       renderer.domElement.addEventListener("contextmenu", event => {
         event.preventDefault();
