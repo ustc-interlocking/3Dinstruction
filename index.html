@@ -726,6 +726,9 @@
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: null
       };
+      renderer.domElement.addEventListener("contextmenu", event => {
+        event.stopImmediatePropagation();
+      }, true);
 /*
       renderer.domElement.addEventListener("contextmenu", event => {
         event.preventDefault();
